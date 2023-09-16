@@ -1,21 +1,21 @@
-import pytest
+from http import HTTPStatus
+import random
 from typing import Unpack
 
-from http import HTTPStatus
-
+import pytest
+from django.test import Client
+from django.urls import reverse
 from mimesis.locales import Locale
 from mimesis.schema import Field, Schema
 
-from django.test import Client
-from django.urls import reverse
-
-
-from tests.plugins.identity.user import (
+from plugins.identity.user import (
     RegistrationData,
     RegistrationDataFactory,
     UserAssertion,
     UserData,
 )
+
+from server.apps.identity.models import User
 
 
 @pytest.fixture(scope='session')
@@ -46,15 +46,40 @@ def registration_data_factory(faker_seed: int) -> RegistrationDataFactory:
             'address': mf('address.city'),
             'job_title': mf('person.occupation'),
             'phone': mf('person.telephone'),
-            'phone_type': mf('choice', items=[1, 2, 3]),
-        })
+        }, iterations=1)
 		return {
-            **schema.create(iterations=1)[0], # type: ignore[misc]
-            **{'password1': password, 'password2': password},
-            **fields,
-        }
+			**schema.create()[0], # type: ignore[misc]
+			**{'password1': password, 'password2': password},
+			**fields,
+		}
 	return factory
 
+@pytest.fixture(scope="session")
+def faker_seed():
+    return random.Random().getrandbits(32)
+
+@pytest.fixture()
+def registration_data(
+    registration_data_factory: RegistrationDataFactory,
+) -> RegistrationData:
+	"""Returns fake random data for regitration."""
+	return registration_data_factory()
+
+@pytest.fixture()
+def user_data(registration_data: 'RegistrationData') -> 'UserData':
+	"""
+	We need to simplify registration data to drop passwords.
+	Basically, it is the same as ``registration_data``, but without passwords.
+	"""
+	return { # type: ignore[return-value]
+		key_name: value_part
+		for key_name, value_part in registration_data.items()
+		if not key_name.startswith('password')
+	}
+
+@pytest.fixture()
+def expected_user_data(user_data: RegistrationData):
+    return user_data
 
 @pytest.mark.django_db()
 def test_valid_registration(
@@ -68,6 +93,7 @@ def test_valid_registration(
 		reverse('identity:registration'),
 		data=registration_data,
 	)
+
 	assert response.status_code == HTTPStatus.FOUND
 	assert response.get('Location') == reverse('identity:login')
 	assert_correct_user(registration_data['email'], expected_user_data)
