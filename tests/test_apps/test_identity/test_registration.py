@@ -10,9 +10,6 @@ from plugins.identity.user import (
     UserData,
 )
 
-from server.apps.identity.infrastructure.services.placeholder import (
-    UserResponse,
-)
 from server.apps.identity.models import User
 
 
@@ -21,7 +18,6 @@ def test_valid_registration(
     client: Client,
     registration_data: 'RegistrationData',
     expected_user_data: 'UserData',
-    external_api_mock: 'UserResponse',
     assert_correct_user: 'UserAssertion',
 ) -> None:
     """Test that registration works with correct user data."""

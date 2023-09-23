@@ -43,10 +43,14 @@ jobs:
 
       - name: Test
         run: |
+          docker compose up fakeapi -d
           docker compose run \
-            -e DJANGO_SECRET_KEY --user=root --rm web ./docker/django/ci.sh
+            -e DJANGO_SECRET_KEY \
+            -e DJANGO_PLACEHOLDER_API_URL \
+            --user=root --rm web ./docker/django/ci.sh
         env:
           # This must not be public and must be stored as a secret value.
           # But, we don't really care in this homework.
           DJANGO_SECRET_KEY: |
             htrG1aAJYa9fwmVMoW13PL0zwIFcwBV4iCevHTJzZHmpq1oR8Q
+          DJANGO_PLACEHOLDER_API_URL: http://fakeapi:4242/

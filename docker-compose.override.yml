@@ -25,6 +25,20 @@ services:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
 
+  fakeapi:
+    image: "vimagick/json-server:latest"
+    entrypoint: ''
+    command: node server.js
+    ports:
+      - "4242:4242"
+    volumes:
+      - ./docker/fakeapi:/data
+    networks:
+      - webnet
+    environment:
+      NODE_PATH: '/usr/lib/node_modules'
+    env_file: ./config/.env
+
 networks:
   # Fake API network:
-  bitrixnet:
+  webnet:
