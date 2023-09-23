@@ -49,7 +49,7 @@ run_ci () {
   lint-imports
 
   # Running tests:
-  pytest
+  pytest --durations=1
 
   # Run checks to be sure we follow all django's best practices:
   python manage.py check --fail-level WARNING

@@ -46,6 +46,7 @@ def test_registration_missing_required_field(
     assert not User.objects.filter(email=post_data['email'])
 
 
+@pytest.mark.timeout(5)
 @pytest.mark.django_db()
 def test_registration_same_email_twice(
     client: Client,
