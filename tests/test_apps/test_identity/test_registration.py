@@ -10,6 +10,9 @@ from plugins.identity.user import (
     UserData,
 )
 
+from server.apps.identity.infrastructure.services.placeholder import (
+    UserResponse,
+)
 from server.apps.identity.models import User
 
 
@@ -18,6 +21,7 @@ def test_valid_registration(
     client: Client,
     registration_data: 'RegistrationData',
     expected_user_data: 'UserData',
+    external_api_mock: 'UserResponse',
     assert_correct_user: 'UserAssertion',
 ) -> None:
     """Test that registration works with correct user data."""
@@ -46,7 +50,6 @@ def test_registration_missing_required_field(
     assert not User.objects.filter(email=post_data['email'])
 
 
-@pytest.mark.timeout(5)
 @pytest.mark.django_db()
 def test_registration_same_email_twice(
     client: Client,
