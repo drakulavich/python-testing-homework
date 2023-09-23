@@ -5,7 +5,6 @@ It may be also used for extending doctest's context:
 1. https://docs.python.org/3/library/doctest.html
 2. https://docs.pytest.org/en/latest/doctest.html
 """
-import random
 from typing import Unpack
 
 import pytest
@@ -45,11 +44,11 @@ def assert_correct_user() -> UserAssertion:
 
 
 @pytest.fixture()
-def registration_data_factory(faker_seed: int) -> RegistrationDataFactory:
+def registration_data_factory() -> RegistrationDataFactory:
     """Returns factory for fake random data for regitration."""
 
     def factory(**fields: Unpack[RegistrationData]) -> RegistrationData:
-        mf = Field(locale=Locale.RU, seed=faker_seed)
+        mf = Field(locale=Locale.RU)
         password = mf('password')  # by default passwords are equal
         schema = Schema(
             schema=lambda: {
@@ -70,12 +69,6 @@ def registration_data_factory(faker_seed: int) -> RegistrationDataFactory:
         }
 
     return factory
-
-
-@pytest.fixture(scope='session')
-def faker_seed():
-    bits_count = 32
-    return random.Random().getrandbits(bits_count)
 
 
 @pytest.fixture()
