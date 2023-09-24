@@ -37,6 +37,7 @@ def test_anonymous_user_get_dashboard(
 
 
 @pytest.mark.django_db()
+@pytest.mark.timeout(5)
 def test_signed_user_get_dashboard(
     client: Client,
     registration_data: 'RegistrationData',
@@ -50,6 +51,7 @@ def test_signed_user_get_dashboard(
 
 
 @pytest.mark.django_db()
+@pytest.mark.timeout(5)
 def test_signed_user_favorite_picture(
     client: Client,
     registration_data: 'RegistrationData',
