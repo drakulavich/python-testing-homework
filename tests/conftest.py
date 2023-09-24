@@ -5,8 +5,10 @@ It may be also used for extending doctest's context:
 1. https://docs.python.org/3/library/doctest.html
 2. https://docs.pytest.org/en/latest/doctest.html
 """
-from typing import Unpack
+import json
+from typing import Iterator, Unpack
 
+import httpretty
 import pytest
 from mimesis.locales import Locale
 from mimesis.schema import Field, Schema
@@ -17,6 +19,10 @@ from plugins.identity.user import (
     UserData,
 )
 
+from server import settings
+from server.apps.identity.infrastructure.services.placeholder import (
+    UserResponse,
+)
 from server.apps.identity.models import User
 
 pytest_plugins = [
@@ -96,3 +102,31 @@ def user_data(registration_data: 'RegistrationData') -> 'UserData':
 @pytest.fixture()
 def expected_user_data(user_data: RegistrationData):
     return user_data
+
+
+@pytest.fixture()
+def external_api_user_response() -> UserResponse:
+    """Create fake external api response for users."""
+    mf = Field(locale=Locale.RU)
+    schema = Schema(
+        schema=lambda: {
+            'id': mf('numeric.increment'),
+        },
+        iterations=1,
+    )
+    return schema.create()[0]
+
+
+@pytest.fixture()
+def external_api_mock(
+    external_api_user_response: UserResponse,
+) -> Iterator[UserResponse]:
+    """Mock external `/users` calls."""
+    with httpretty.httprettized():
+        httpretty.register_uri(
+            method=httpretty.POST,
+            body=json.dumps(external_api_user_response),
+            uri='{0}users'.format(settings.PLACEHOLDER_API_URL),
+        )
+        yield external_api_user_response  # return body
+        assert httpretty.has_request()
